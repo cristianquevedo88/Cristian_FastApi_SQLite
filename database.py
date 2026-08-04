@@ -1,28 +1,20 @@
-import sqlite3
-DATABASE_NAME = 'sistema_aprendices.db'
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
-def obtener_conexion():
-    """
-    Crear una conexion con la base de datos y retornarla en forma de diccionario.
+SQLALCHEMY_DATABASE_URL = "sqlite:///./asignaturas.db"
 
-    """
-    conexion = sqlite3.connect(DATABASE_NAME)
-    conexion.row_factory = sqlite3.Row
-    return conexion
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-def inicializar_db():
-    """
-    Crear las tablas necesarias si es que no existen.
-    
-    """
-    with obtener_conexion() as conexion:
-        cursor = conexion.cursor()
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS aprendiz(
-         id INTEGER PRIMARY KEY AUTOINCREMENT,
-         nombre TEXT NOT NULL,
-         documento TEXT UNIQUE NOT NULL,
-         programa TEXT NOT NULL
-         )
-        """)
-        conexion.commit()
+Base = declarative_base()
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
